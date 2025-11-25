@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Мир Книг - Главная</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
+</head>
+<body>
+  
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container">
+      <a class="navbar-brand" href="/">Мир Книг</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="/products">Товары</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/products" id="adminLink" style="display: none;">Управление товарами</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/cart">Корзина</a>
+          </li>
+        </ul>
+        <!-- кнопки авторизации -->
+        <div class="d-flex align-items-center" id="authSection">
+          <!-- гости -->
+          <div id="guestOptions">
+            <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#loginModal">Войти</button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">Регистрация</button>
+          </div>
+          <!-- залогиненные -->
+          <div id="userOptions" style="display: none;">
+            <span class="me-3">Добро пожаловать, <strong id="userName"></strong>!</span>
+            <button class="btn btn-outline-secondary" onclick="logout()">Выйти</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- окно входа -->
+  <div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Вход в систему</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="loginForm">
+            <div class="mb-3">
+              <label for="loginEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="loginEmail" required />
+            </div>
+            <div class="mb-3">
+              <label for="loginPassword" class="form-label">Пароль</label>
+              <input type="password" class="form-control" id="loginPassword" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Войти</button>
+          </form>
+          <div class="text-center mt-3">
+            <span>Нет аккаунта? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Зарегистрируйтесь</a></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- окно регистрации -->
+  <div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Регистрация</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="registerForm">
+            <div class="mb-3">
+              <label for="registerName" class="form-label">Имя</label>
+              <input type="text" class="form-control" id="registerName" required />
+            </div>
+            <div class="mb-3">
+              <label for="registerEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="registerEmail" required />
+            </div>
+            <div class="mb-3">
+              <label for="registerPassword" class="form-label">Пароль</label>
+              <input type="password" class="form-control" id="registerPassword" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+          </form>
+          <div class="text-center mt-3">
+            <span>Уже есть аккаунт? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Войдите</a></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mt-4">
+    <div class="jumbotron bg-light p-5 rounded">
+      <h1 class="display-4">Добро пожаловать в Мир Книг!</h1>
+      <p class="lead">Лучший выбор литературы для всех возрастов и вкусов.</p>
+      <hr class="my-4" />
+      <p>Книги — это целый мир знаний, ощущений и радости жизни.</p>
+      <a class="btn btn-primary btn-lg" href="/products" role="button">Посмотреть товары</a>
+    </div>
+  </div>
+
+  
+  <footer class="fixed-bottom bg-light">
+    <div class="container p-4 d-flex flex-column">
+      <h3>Магазин "Мир Книг"</h3>
+      <span>Адрес: Златоуст, ул Таганайская, 2</span>
+      <span>Телефон: <a href="tel:+73513671044">+7351777777</a></span>
+    </div>
+  </footer>
+
+  <script src="/static/js/bootstrap.min.js"></script>
+  <script>
+ 
+    let currentUser = null;
+    let isAdmin = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // определение статуса
+      checkAuth();
+
+      // Обработчики форм
+      document.getElementById('loginForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        authenticate(email, password);
+      });
+
+      document.getElementById('registerForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        register(name, email, password);
+      });
+    });
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/user');
+        const data = await res.json();
+        if (data.logged_in) {
+          currentUser = data.user;
+          isAdmin = data.user.is_admin;
+          updateUI();
+        }
+      } catch (err) {
+        console.log('Ошибка при проверке авторизации:', err);
+      }
+    }
+
+    async function authenticate(email, password) {
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password})
+        });
+        const result = await res.json();
+        if (result.success) {
+          currentUser = result.user;
+          isAdmin = result.user.is_admin;
+          updateUI();
+
+          
+          bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+          document.getElementById('loginForm').reset();
+          alert(`Добро пожаловать, ${result.user.name}!`);
+        } else {
+          alert(result.message);
+        }
+      } catch (err) {
+        console.error('Ошибка при входе:', err);
+        alert('Что-то пошло не так');
+      }
+    }
+
+    async function register(name, email, password) {
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name, email, password})
+        });
+        const result = await res.json();
+        if (result.success) {
+          currentUser = result.user;
+          isAdmin = result.user.is_admin;
+          updateUI();
+
+          bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+          document.getElementById('registerForm').reset();
+          alert(`Регистрация прошла успешно! Привет, ${name}!`);
+        } else {
+          alert(result.message);
+        }
+      } catch (err) {
+        console.log('Ошибка при регистрации:', err);
+        alert('Помилка регистрации');
+      }
+    }
+
+    async function logout() {
+      try {
+        const res = await fetch('/api/logout');
+        const result = await res.json();
+        if (result.success) {
+          currentUser = null;
+          isAdmin = false;
+          updateUI();
+          alert('Вы вышли из аккаунта');
+        }
+      } catch (err) {
+        console.log('Ошибка выхода:', err);
+      }
+    }
+
+    function updateUI() {
+      const guestSection = document.getElementById('guestOptions');
+      const userSection = document.getElementById('userOptions');
+      const userNameSpan = document.getElementById('userName');
+      const adminLink = document.getElementById('adminLink');
+
+      if (currentUser) {
+        guestSection.style.display = 'none';
+        userSection.style.display = 'block';
+        userNameSpan.textContent = currentUser.name;
+
+        // показывать или скрыть админнистративную панель
+        if (isAdmin) {
+          adminLink.style.display = 'block';
+        } else {
+          adminLink.style.display = 'none';
+        }
+      } else {
+        guestSection.style.display = 'block';
+        userSection.style.display = 'none';
+        adminLink.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мир Книг - Корзина</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script src="/static/js/bootstrap.min.js"></script>
+    <style>
+        .cart-item {
+            border-bottom: 1px solid #dee2e6;
+            padding: 15px 0;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 50px 0;
+        }
+    </style>
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column;">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Мир Книг</a>
+            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products">Товары</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/products" id="adminLink" style="display: none;">Управление товарами</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/orders" id="adminOrdersLink" style="display: none;">Заказы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/cart">Корзина</a>
+                    </li>
+                </ul>
+                
+                <form class="d-flex me-2" role="search">
+                        <input class="form-control me-2" type="search" placeholder="Поиск книг..." id="searchInput">
+                        <button class="btn btn-outline-success" type="button" onclick="searchProducts()">Поиск</button>
+                    </form>
+                <div class="d-flex align-items-center">
+                    <a class="btn btn-outline-primary d-flex align-items-center me-2" href="/cart">
+                        🛒<span class="badge bg-primary ms-2" id="cartBadge">0</span>
+                    </a>
+                    
+                   
+                    
+                    <!-- Кнопки авторизации -->
+                    <div class="d-flex align-items-center" id="authButtons">
+                        <div id="guestButtons">
+                            <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                Войти
+                            </button>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                Регистрация
+                            </button>
+                        </div>
+                        <div id="userButtons" style="display: none;">
+                            <span class="me-3">Добро пожаловать, <strong id="userName"></strong>!</span>
+                            <button class="btn btn-outline-secondary" onclick="logout()">
+                                Выйти
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Модальное окно входа -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Вход в систему</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Пароль</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Войти</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно регистрации -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Регистрация</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="registerName" class="form-label">Имя</label>
+                            <input type="text" class="form-control" id="registerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="registerEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="registerPassword" class="form-label">Пароль</label>
+                            <input type="password" class="form-control" id="registerPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-4 flex-grow-1">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">Корзина покупок</h1>
+                
+                <div id="cartContent">
+                    <!-- Здесь будет содержимое корзины -->
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Загрузка...</span>
+                        </div>
+                        <p class="mt-2">Загрузка корзины...</p>
+                    </div>
+                </div>
+                
+                <div id="emptyCart" class="empty-cart" style="display: none;">
+                    <div class="mb-4">
+                        <h3>😔 Корзина пуста</h3>
+                        <p class="text-muted">Добавьте товары из каталога, чтобы сделать заказ</p>
+                    </div>
+                    <a href="/products" class="btn btn-primary btn-lg">Перейти к товарам</a>
+                </div>
+                
+                <div id="cartSummary" class="card mt-4" style="display: none;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Итого:</h5>
+                                <div class="d-flex justify-content-between">
+                                    <span>Товары:</span>
+                                    <span id="subtotal">0 руб.</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Доставка:</span>
+                                    <span id="shipping">Бесплатно</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between fw-bold fs-5">
+                                    <span>Общая сумма:</span>
+                                    <span id="total">0 руб.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center justify-content-end">
+                                <button class="btn btn-success btn-lg" onclick="checkout()">
+                                    Оформить заказ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="footer bg-body-tertiary mt-5">
+        <div class="container p-4">
+            <div class="d-flex flex-column">
+                <h3>Магазин "Мир Книг"</h3>
+                <span>Адрес: 456204, Златоуст, ул. Шапошникова, 1а</span>
+                <span>Телефон: <a href="tel:+73513671044">+73513671044</a></span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/cart.js"></script>
+    <script>
+        // Глобальные переменные
+        let currentUser = null;
+        let isAdmin = false;
+
+        // Проверка статуса авторизации при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            
+            // Обработчики форм
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                loginUser(email, password);
+            });
+
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                registerUser(name, email, password);
+            });
+
+            // Обработчик нажатия Enter в поле поиска
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchProducts();
+                }
+            });
+        });
+
+        // Проверка статуса авторизации
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/user');
+                const result = await response.json();
+                
+                if (result.logged_in) {
+                    currentUser = result.user;
+                    isAdmin = result.user.is_admin;
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Ошибка проверки авторизации:', error);
+            }
+        }
+
+        // Вход пользователя
+        async function loginUser(email, password) {
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({email: email, password: password})
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser = result.user;
+                    isAdmin = result.user.is_admin;
+                    updateUI();
+                    
+                    // Закрываем модальное окно
+                    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    loginModal.hide();
+                    
+                    // Очищаем форму
+                    document.getElementById('loginForm').reset();
+                    
+                    alert('Добро пожаловать, ' + result.user.name + '!');
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.log('Ошибка входа:', error);
+                alert('Ошибка входа');
+            }
+        }
+
+        // Регистрация пользователя
+        async function registerUser(name, email, password) {
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({name: name, email: email, password: password})
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    currentUser = result.user;
+                    isAdmin = result.user.is_admin;
+                    updateUI();
+                    
+                    // Закрываем модальное окно
+                    const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                    registerModal.hide();
+                    
+                    // Очищаем форму
+                    document.getElementById('registerForm').reset();
+                    
+                    alert('Регистрация успешна! Добро пожаловать, ' + name + '!');
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.log('Ошибка регистрации:', error);
+                alert('Ошибка регистрации');
+            }
+        }
+
+        // Выход пользователя
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout');
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentUser = null;
+                    isAdmin = false;
+                    updateUI();
+                    alert('Вы вышли из аккаунта');
+                }
+            } catch (error) {
+                console.log('Ошибка выхода:', error);
+            }
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            const guestButtons = document.getElementById('guestButtons');
+            const userButtons = document.getElementById('userButtons');
+            const userName = document.getElementById('userName');
+            const adminLink = document.getElementById('adminLink');
+            const adminOrdersLink = document.getElementById('adminOrdersLink');
+            
+            if (currentUser) {
+                // Показываем кнопки для авторизованного пользователя
+                guestButtons.style.display = 'none';
+                userButtons.style.display = 'block';
+                userName.textContent = currentUser.name;
+                
+                // Показываем ссылки на админку только для администраторов
+                if (isAdmin) {
+                    adminLink.style.display = 'block';
+                    adminOrdersLink.style.display = 'block';
+                } else {
+                    adminLink.style.display = 'none';
+                    adminOrdersLink.style.display = 'none';
+                }
+            } else {
+                // Показываем кнопки для гостя
+                guestButtons.style.display = 'block';
+                userButtons.style.display = 'none';
+                adminLink.style.display = 'none';
+                adminOrdersLink.style.display = 'none';
+            }
+        }
+
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (searchTerm) {
+                window.location.href = `/products?search=${encodeURIComponent(searchTerm)}`;
+            } else {
+                window.location.href = '/products';
+            }
+        }
+    </script>
+</body>
+</html>
